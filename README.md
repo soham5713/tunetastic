@@ -5,9 +5,9 @@ This is a Spotify-like music streaming web app built with **React**, **Vite**, *
 ## Features
 
 - **User Authentication**: Google login and email/password sign-in via Firebase Auth ✅
-- **Music Streaming**: Upload and play music tracks, control playback (play, pause, next, previous)
-- **Playlists**: Users can create, edit, and delete their playlists
-- **Search**: Search songs, albums, or artists
+- **Music Streaming**: Upload and play music tracks, control playback (play, pause, next, previous) ✅
+- **Playlists**: Users can create, edit, and delete their playlists ✅
+- **Search**: Search songs, albums, or artists ✅
 - **Side Navbar**: A sleek side navigation bar to navigate through sections of the app ✅
 - **Dark Mode & Light Mode**: Toggle between dark and light modes for a customized viewing experience ✅
 - **Responsive Design**: Fully responsive for mobile and desktop devices

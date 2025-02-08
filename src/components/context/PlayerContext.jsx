@@ -2,6 +2,9 @@
 
 import { createContext, useState, useRef, useEffect, useCallback } from "react"
 import { songs } from "../../data/songs"
+import { useAuth } from "../hooks/useAuth"
+import { db } from "../../lib/firebase"
+import { doc, setDoc, getDoc } from "firebase/firestore"
 
 export const PlayerContext = createContext()
 
@@ -18,6 +21,7 @@ export const PlayerProvider = ({ children }) => {
   const [repeat, setRepeat] = useState("off") // 'off', 'all', 'one'
 
   const audioRef = useRef(new Audio())
+  const { user } = useAuth()
 
   useEffect(() => {
     if (currentSong) {
@@ -82,6 +86,29 @@ export const PlayerProvider = ({ children }) => {
     }
   }, [shuffle, queue, shuffleArray])
 
+  useEffect(() => {
+    const loadUserData = async () => {
+      if (user) {
+        const userDoc = await getDoc(doc(db, `users/${user.uid}`))
+        if (userDoc.exists()) {
+          const userData = userDoc.data()
+          setVolume(userData.volume || 1)
+          setShuffle(userData.shuffle || false)
+          setRepeat(userData.repeat || "off")
+        }
+      } else {
+        const localVolume = Number.parseFloat(localStorage.getItem("volume") || "1")
+        const localShuffle = localStorage.getItem("shuffle") === "true"
+        const localRepeat = localStorage.getItem("repeat") || "off"
+        setVolume(localVolume)
+        setShuffle(localShuffle)
+        setRepeat(localRepeat)
+      }
+    }
+
+    loadUserData()
+  }, [user])
+
   const playSong = useCallback((song) => {
     setCurrentSong(song)
     setError(null)
@@ -129,17 +156,34 @@ export const PlayerProvider = ({ children }) => {
     setProgress(value)
   }, [])
 
-  const toggleShuffle = useCallback(() => {
-    setShuffle((prev) => !prev)
-  }, [])
+  const setVolumeAndSave = (newVolume) => {
+    setVolume(newVolume)
+    if (user) {
+      setDoc(doc(db, `users/${user.uid}`), { volume: newVolume }, { merge: true })
+    } else {
+      localStorage.setItem("volume", newVolume.toString())
+    }
+  }
 
-  const toggleRepeat = useCallback(() => {
-    setRepeat((prev) => {
-      if (prev === "off") return "all"
-      if (prev === "all") return "one"
-      return "off"
-    })
-  }, [])
+  const toggleShuffleAndSave = () => {
+    const newShuffle = !shuffle
+    setShuffle(newShuffle)
+    if (user) {
+      setDoc(doc(db, `users/${user.uid}`), { shuffle: newShuffle }, { merge: true })
+    } else {
+      localStorage.setItem("shuffle", newShuffle.toString())
+    }
+  }
+
+  const toggleRepeatAndSave = () => {
+    const newRepeat = repeat === "off" ? "all" : repeat === "all" ? "one" : "off"
+    setRepeat(newRepeat)
+    if (user) {
+      setDoc(doc(db, `users/${user.uid}`), { repeat: newRepeat }, { merge: true })
+    } else {
+      localStorage.setItem("repeat", newRepeat)
+    }
+  }
 
   const value = {
     currentSong,
@@ -155,10 +199,10 @@ export const PlayerProvider = ({ children }) => {
     togglePlay,
     nextSong,
     previousSong,
-    setVolume,
+    setVolume: setVolumeAndSave,
     setProgressManually,
-    toggleShuffle,
-    toggleRepeat,
+    toggleShuffle: toggleShuffleAndSave,
+    toggleRepeat: toggleRepeatAndSave,
   }
 
   return <PlayerContext.Provider value={value}>{children}</PlayerContext.Provider>

@@ -32,7 +32,7 @@ const TopBar = () => {
   }
 
   return (
-    <header className="sticky top-0 z-10 bg-background border-b border-border flex justify-between items-center p-4">
+    <header className="sticky top-0 z-10 bg-background border-b border-border flex justify-between items-center p-4 h-16">
       <Link to="/" className="text-2xl font-bold text-primary">
         Tunetastic
       </Link>
@@ -44,7 +44,7 @@ const TopBar = () => {
             placeholder="Search for songs, artists, or albums"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10"
+            className="w-full pl-10 pr-4 py-2 rounded-full bg-accent/50 focus:bg-accent"
           />
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
         </div>

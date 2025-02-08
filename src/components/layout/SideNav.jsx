@@ -6,32 +6,35 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
-import { Home, Search, Library, PlusCircle, Heart, Disc3, ChevronLeft, ChevronRight, UploadCloud } from "lucide-react"
+import { Home, Search, Library, PlusCircle, Heart, Disc3, ChevronLeft, ChevronRight } from "lucide-react"
 import { usePlaylists } from "../hooks/usePlaylists"
 
 const SideNav = () => {
   const [collapsed, setCollapsed] = useState(false)
   const location = useLocation()
-  const playlists = usePlaylists()
+  const { playlists, createPlaylist } = usePlaylists()
 
   const navItems = [
     { icon: Home, label: "Home", path: "/" },
     { icon: Search, label: "Search", path: "/search" },
     { icon: Library, label: "Your Library", path: "/library" },
-    { icon: UploadCloud, label: "Upload", path: "/upload" },
   ]
 
   const toggleCollapse = () => {
     setCollapsed(!collapsed)
   }
 
+  const handleCreatePlaylist = () => {
+    const playlistName = prompt("Enter playlist name:")
+    if (playlistName) {
+      createPlaylist(playlistName)
+    }
+  }
+
   return (
     <div
       style={{ transition: "width 0.3s ease" }}
-      className={cn(
-        "flex flex-col h-screen bg-background text-foreground border-r border-border",
-        collapsed ? "w-16" : "w-64",
-      )}
+      className={cn("flex flex-col h-screen bg-background border-r border-border", collapsed ? "w-16" : "w-64")}
     >
       <div className="p-4 flex justify-between items-center">
         {!collapsed && <h2 className="text-lg font-semibold">Tunetastic</h2>}
@@ -49,7 +52,7 @@ const SideNav = () => {
                 "flex items-center space-x-2 px-3 py-2 rounded-md transition-colors",
                 location.pathname === item.path
                   ? "bg-accent text-accent-foreground"
-                  : "hover:bg-accent hover:text-accent-foreground",
+                  : "hover:bg-accent/50 hover:text-accent-foreground",
               )}
             >
               <item.icon size={20} />
@@ -59,7 +62,7 @@ const SideNav = () => {
         </nav>
         <Separator className="my-4" />
         <div className="space-y-4 p-2">
-          <Button variant="ghost" className="w-full justify-start" disabled={collapsed}>
+          <Button variant="ghost" className="w-full justify-start" onClick={handleCreatePlaylist} disabled={collapsed}>
             <PlusCircle size={20} className="mr-2" />
             {!collapsed && "Create Playlist"}
           </Button>
@@ -78,7 +81,7 @@ const SideNav = () => {
                 "flex items-center space-x-2 px-3 py-2 rounded-md transition-colors",
                 location.pathname === `/playlist/${playlist.id}`
                   ? "bg-accent text-accent-foreground"
-                  : "hover:bg-accent hover:text-accent-foreground",
+                  : "hover:bg-accent/50 hover:text-accent-foreground",
               )}
             >
               <Disc3 size={20} />

@@ -27,12 +27,17 @@ export const useAuth = () => {
     return signOut(auth)
   }
 
+  const isLoggedIn = () => {
+    return !!context.user
+  }
+
   return {
     user: context.user,
     login,
     loginWithGoogle,
     signUp,
     logout,
+    isLoggedIn,
   }
 }
 
