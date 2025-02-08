@@ -4,7 +4,7 @@ import { useContext, useState, useEffect } from "react"
 import { PlayerContext } from "../context/PlayerContext"
 import { useAuth } from "./useAuth"
 import { db } from "../../lib/firebase"
-import { doc, setDoc, getDoc } from "firebase/firestore"
+import { doc, setDoc, getDoc, arrayUnion, arrayRemove } from "firebase/firestore"
 
 export const usePlayer = () => {
   const context = useContext(PlayerContext)
@@ -17,6 +17,8 @@ export const usePlayer = () => {
         const likedSongsDoc = await getDoc(doc(db, `users/${user.uid}/likedSongs/songs`))
         if (likedSongsDoc.exists()) {
           setLikedSongs(new Set(likedSongsDoc.data().songs))
+        } else {
+          setLikedSongs(new Set())
         }
       } else {
         const localLikedSongs = JSON.parse(localStorage.getItem("likedSongs") || "[]")
@@ -44,7 +46,18 @@ export const usePlayer = () => {
     } else {
       updatedLikedSongs.add(songId)
     }
-    await saveLikedSongs(updatedLikedSongs)
+
+    if (user) {
+      const likedSongsRef = doc(db, `users/${user.uid}/likedSongs/songs`)
+      if (updatedLikedSongs.has(songId)) {
+        await setDoc(likedSongsRef, { songs: arrayUnion(songId) }, { merge: true })
+      } else {
+        await setDoc(likedSongsRef, { songs: arrayRemove(songId) }, { merge: true })
+      }
+    } else {
+      localStorage.setItem("likedSongs", JSON.stringify(Array.from(updatedLikedSongs)))
+    }
+    setLikedSongs(updatedLikedSongs)
   }
 
   const isLiked = (songId) => likedSongs.has(songId)

@@ -1,4 +1,5 @@
 "use client"
+import { useState } from "react"
 import { usePlayer } from "../hooks/usePlayer"
 import { usePlaylists } from "../hooks/usePlaylists"
 import { Button } from "@/components/ui/button"
@@ -16,10 +17,21 @@ import {
   Repeat1,
   Heart,
   PlusCircle,
+  Check,
+  List,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu"
+import { useNavigate } from "react-router-dom"
+import Queue from "./Queue"
 
 const formatTime = (time) => {
   const minutes = Math.floor(time / 60)
@@ -45,13 +57,42 @@ const MusicPlayer = () => {
     toggleRepeat,
     toggleLike,
     isLiked,
+    queue,
   } = usePlayer()
   const { playlists, addSongToPlaylist } = usePlaylists()
+  const navigate = useNavigate()
+  const [showQueue, setShowQueue] = useState(false)
 
-  const handleAddToPlaylist = (playlistId) => {
+  const handleAddToPlaylist = async (playlistId) => {
     if (currentSong) {
-      addSongToPlaylist(playlistId, currentSong)
+      const playlist = playlists.find((p) => p.id === playlistId)
+      if (playlist) {
+        const songIndex = playlist.songs.findIndex((s) => s.id === currentSong.id)
+        let updatedSongs
+        if (songIndex !== -1) {
+          // Remove the song if it's already in the playlist
+          updatedSongs = playlist.songs.filter((s) => s.id !== currentSong.id)
+        } else {
+          // Add the song if it's not in the playlist
+          updatedSongs = [...playlist.songs, currentSong]
+        }
+        await addSongToPlaylist(playlistId, currentSong, updatedSongs)
+      }
     }
+  }
+
+  if (queue.length === 0) {
+    return (
+      <div className="bg-card text-card-foreground p-4 border-t fixed bottom-0 left-0 right-0">
+        <div className="flex justify-center items-center">
+          <p className="text-muted-foreground mr-4">Your queue is empty. Add some songs to get started!</p>
+          <Button onClick={() => navigate("/library")} className="flex items-center">
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Add Songs
+          </Button>
+        </div>
+      </div>
+    )
   }
 
   if (!currentSong) return null
@@ -146,30 +187,46 @@ const MusicPlayer = () => {
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
                 <PlusCircle className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>Add to Playlist</DropdownMenuLabel>
+              <DropdownMenuSeparator />
               {playlists.length > 0 ? (
                 playlists.map((playlist) => (
                   <DropdownMenuItem
                     key={playlist.id}
                     onSelect={() => handleAddToPlaylist(playlist.id)}
-                    className={cn(
-                      playlist.songs.some((song) => song.id === currentSong.id) && "bg-accent text-accent-foreground",
-                    )}
+                    className="flex items-center justify-between"
                   >
-                    {playlist.name}
+                    <span className="truncate">{playlist.name}</span>
+                    {playlist.songs.some((song) => song.id === currentSong?.id) && (
+                      <Check className="h-4 w-4 text-primary" />
+                    )}
                   </DropdownMenuItem>
                 ))
               ) : (
                 <DropdownMenuItem disabled>No playlists available</DropdownMenuItem>
               )}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onSelect={() => navigate("/create-playlist")}>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                <span>Create New Playlist</span>
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          <Button variant="ghost" size="icon" onClick={() => setShowQueue(!showQueue)}>
+            <List className="h-4 w-4" />
+          </Button>
         </div>
       </div>
+      {showQueue && (
+        <div className="fixed right-0 bottom-20 z-50">
+          <Queue />
+        </div>
+      )}
     </div>
   )
 }

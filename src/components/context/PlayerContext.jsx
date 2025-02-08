@@ -185,6 +185,27 @@ export const PlayerProvider = ({ children }) => {
     }
   }
 
+  const addToQueue = useCallback((song) => {
+    setQueue((prevQueue) => [...prevQueue, song])
+  }, [])
+
+  const removeFromQueue = useCallback((songId) => {
+    setQueue((prevQueue) => prevQueue.filter((song) => song.id !== songId))
+  }, [])
+
+  const clearQueue = useCallback(() => {
+    setQueue([])
+  }, [])
+
+  const reorderQueue = useCallback((startIndex, endIndex) => {
+    setQueue((prevQueue) => {
+      const result = Array.from(prevQueue)
+      const [removed] = result.splice(startIndex, 1)
+      result.splice(endIndex, 0, removed)
+      return result
+    })
+  }, [])
+
   const value = {
     currentSong,
     isPlaying,
@@ -203,6 +224,10 @@ export const PlayerProvider = ({ children }) => {
     setProgressManually,
     toggleShuffle: toggleShuffleAndSave,
     toggleRepeat: toggleRepeatAndSave,
+    addToQueue,
+    removeFromQueue,
+    clearQueue,
+    reorderQueue,
   }
 
   return <PlayerContext.Provider value={value}>{children}</PlayerContext.Provider>

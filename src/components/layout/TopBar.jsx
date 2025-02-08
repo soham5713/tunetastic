@@ -16,7 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Sun, Moon, Search, User, LogOut } from "lucide-react"
+import { Search, User, LogOut, Sun, Moon } from "lucide-react"
 
 const TopBar = () => {
   const { user, logout } = useAuth()

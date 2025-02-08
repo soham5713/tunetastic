@@ -64,10 +64,18 @@ const SideNav = () => {
             <PlusCircle size={20} className="mr-2" />
             {!collapsed && "Create Playlist"}
           </Button>
-          <Button variant="ghost" className="w-full justify-start" disabled={collapsed}>
-            <Heart size={20} className="mr-2" />
-            {!collapsed && "Liked Songs"}
-          </Button>
+          <Link
+            to="/liked-songs"
+            className={cn(
+              "flex items-center space-x-2 px-3 py-2 rounded-md transition-colors",
+              location.pathname === "/liked-songs"
+                ? "bg-accent text-accent-foreground"
+                : "hover:bg-accent/50 hover:text-accent-foreground",
+            )}
+          >
+            <Heart size={20} />
+            {!collapsed && <span>Liked Songs</span>}
+          </Link>
         </div>
         <Separator className="my-4" />
         <div className="space-y-2 p-2">

@@ -11,6 +11,8 @@ import Library from "./components/pages/Library"
 import Playlist from "./components/pages/Playlist"
 import Profile from "./components/pages/Profile"
 import CreatePlaylist from "./components/pages/CreatePlaylist"
+import LikedSongs from "./components/pages/LikedSongs"
+import { Toaster } from "./components/ui/toaster"
 
 const App = () => {
   return (
@@ -28,9 +30,11 @@ const App = () => {
                 <Route path="/playlist/:id" element={<Playlist />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/create-playlist" element={<CreatePlaylist />} />
+                <Route path="/liked-songs" element={<LikedSongs />} />
               </Routes>
             </Layout>
           </PlayerProvider>
+          <Toaster />
         </ThemeProvider>
       </AuthProvider>
     </Router>

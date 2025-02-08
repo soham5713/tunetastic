@@ -1,6 +1,0 @@
-/* This file is for any additional theme-related styles that aren't covered by Tailwind */
-.theme-transition {
-    transition: background-color 0.3s ease, color 0.3s ease;
-  }
-  
-  
