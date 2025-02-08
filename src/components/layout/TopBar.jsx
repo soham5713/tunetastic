@@ -1,7 +1,12 @@
+"use client"
+
+import { useState } from "react"
 import { useAuth } from "../hooks/useAuth"
 import { useTheme } from "../hooks/useTheme"
-import { Link } from "react-router-dom"
+import { useSearch } from "../hooks/useSearch"
+import { Link, useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,13 +15,21 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Sun, Moon, Search, User, LogOut } from "lucide-react"
 
 const TopBar = () => {
   const { user, logout } = useAuth()
   const { theme, toggleTheme } = useTheme()
+  const { performSearch } = useSearch()
+  const navigate = useNavigate()
+  const [searchQuery, setSearchQuery] = useState("")
+
+  const handleSearch = (e) => {
+    e.preventDefault()
+    performSearch(searchQuery)
+    navigate(`/search?q=${encodeURIComponent(searchQuery)}`)
+  }
 
   return (
     <header className="sticky top-0 z-10 bg-background border-b border-border flex justify-between items-center p-4">
@@ -24,12 +37,18 @@ const TopBar = () => {
         Tunetastic
       </Link>
 
-      <div className="flex-1 max-w-xl mx-4">
-        <form onSubmit={(e) => e.preventDefault()} className="relative">
-          <Input type="search" placeholder="Search for songs, artists, or albums" className="w-full pl-10" />
+      <form onSubmit={handleSearch} className="flex-1 max-w-xl mx-4">
+        <div className="relative">
+          <Input
+            type="search"
+            placeholder="Search for songs, artists, or albums"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10"
+          />
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
-        </form>
-      </div>
+        </div>
+      </form>
 
       <div className="flex items-center space-x-4">
         <Button

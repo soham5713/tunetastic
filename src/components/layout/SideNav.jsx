@@ -27,8 +27,9 @@ const SideNav = () => {
 
   return (
     <div
+      style={{ transition: "width 0.3s ease" }}
       className={cn(
-        "flex flex-col h-screen bg-card text-card-foreground border-r border-border transition-all duration-300",
+        "flex flex-col h-screen bg-background text-foreground border-r border-border",
         collapsed ? "w-16" : "w-64",
       )}
     >

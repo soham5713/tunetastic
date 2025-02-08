@@ -1,38 +1,62 @@
 "use client"
 
-import { useState } from "react"
-import SongList from "../music/SongList"
+import { useEffect } from "react"
+import { useLocation } from "react-router-dom"
+import { useSearch } from "../hooks/useSearch"
+import { usePlayer } from "../hooks/usePlayer"
+import { Card, CardContent } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { PlayIcon } from "lucide-react"
 
 const Search = () => {
-  const [searchTerm, setSearchTerm] = useState("")
-  const [searchResults, setSearchResults] = useState([])
+  const location = useLocation()
+  const { searchResults, isSearching, performSearch } = useSearch()
+  const { playSong } = usePlayer()
 
-  const handleSearch = (e) => {
-    e.preventDefault()
-    // Implement search logic here
-    // For now, we'll just set some dummy results
-    setSearchResults([
-      { id: 1, title: "Song 1", artist: "Artist 1" },
-      { id: 2, title: "Song 2", artist: "Artist 2" },
-    ])
-  }
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search)
+    const query = searchParams.get("q")
+    if (query) {
+      performSearch(query)
+    }
+  }, [location.search, performSearch])
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-4">Search</h1>
-      <form onSubmit={handleSearch} className="mb-4">
-        <input
-          type="text"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="Search for songs, artists, or albums"
-          className="w-full p-2 border rounded"
-        />
-        <button type="submit" className="mt-2 bg-primary text-primary-foreground px-4 py-2 rounded">
-          Search
-        </button>
-      </form>
-      <SongList songs={searchResults} />
+    <div className="space-y-4">
+      <h1 className="text-2xl font-bold">Search Results</h1>
+      {isSearching ? (
+        <p>Searching...</p>
+      ) : searchResults.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {searchResults.map((song) => (
+            <Card key={song.id} className="overflow-hidden hover:shadow-md transition-shadow">
+              <CardContent className="p-4">
+                <div className="flex items-center">
+                  <img
+                    src={song.coverUrl || "/placeholder.svg"}
+                    alt={song.title}
+                    className="w-12 h-12 rounded-md mr-3"
+                  />
+                  <div className="flex-grow">
+                    <h3 className="font-semibold text-foreground">{song.title}</h3>
+                    <p className="text-sm text-muted-foreground">{song.artist}</p>
+                  </div>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => playSong(song)}
+                    className="text-primary hover:text-primary-foreground hover:bg-primary"
+                  >
+                    <PlayIcon size={20} />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <p>No results found.</p>
+      )}
     </div>
   )
 }

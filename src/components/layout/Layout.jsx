@@ -8,7 +8,7 @@ const Layout = ({ children }) => {
       <SideNav />
       <div className="flex flex-col flex-1 overflow-hidden">
         <TopBar />
-        <main className="flex-1 overflow-auto p-4">{children}</main>
+        <main className="flex-1 overflow-auto p-4 pb-20">{children}</main>
         <MusicPlayer />
       </div>
     </div>
