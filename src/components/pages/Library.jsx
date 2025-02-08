@@ -15,7 +15,7 @@ import CreatePlaylistDialog from "../dialogs/CreatePlaylistDialog"
 
 const Library = () => {
   const { playlists, createPlaylist, editPlaylist, deletePlaylist } = usePlaylists()
-  const { queue, likedSongs } = usePlayer()
+  const { queue, likedSongs, isLiked } = usePlayer()
   const [searchTerm, setSearchTerm] = useState("")
   const [filter, setFilter] = useState("all")
   const navigate = useNavigate()
@@ -30,7 +30,7 @@ const Library = () => {
       song.artist.toLowerCase().includes(searchTerm.toLowerCase()),
   )
 
-  const likedSongsData = queue.filter((song) => likedSongs.includes(song.id))
+  const likedSongsData = queue.filter((song) => isLiked(song.id))
 
   const handleCreatePlaylist = (name) => {
     const newPlaylist = createPlaylist(name)

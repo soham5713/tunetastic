@@ -1,5 +1,3 @@
-"use client"
-
 import { useContext } from "react"
 import { AuthContext } from "../context/AuthContext"
 import { auth, googleProvider, db } from "../../lib/firebase"
@@ -55,17 +53,12 @@ export const useAuth = () => {
     return signOut(auth)
   }
 
-  const isLoggedIn = () => {
-    return !!context.user
-  }
-
   return {
     user: context.user,
     login,
     loginWithGoogle,
     signUp,
     logout,
-    isLoggedIn,
   }
 }
 

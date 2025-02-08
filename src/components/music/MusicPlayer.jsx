@@ -59,78 +59,60 @@ const MusicPlayer = () => {
     isLiked,
     queue,
   } = usePlayer()
-  const { playlists, addSongToPlaylist } = usePlaylists()
+  const { playlists, addSongToPlaylist, removeSongFromPlaylist } = usePlaylists()
   const navigate = useNavigate()
   const [showQueue, setShowQueue] = useState(false)
 
-  const handleAddToPlaylist = async (playlistId) => {
+  const handleAddOrRemoveFromPlaylist = async (playlistId) => {
     if (currentSong) {
       const playlist = playlists.find((p) => p.id === playlistId)
       if (playlist) {
         const songIndex = playlist.songs.findIndex((s) => s.id === currentSong.id)
-        let updatedSongs
         if (songIndex !== -1) {
-          // Remove the song if it's already in the playlist
-          updatedSongs = playlist.songs.filter((s) => s.id !== currentSong.id)
+          await removeSongFromPlaylist(playlistId, currentSong)
         } else {
-          // Add the song if it's not in the playlist
-          updatedSongs = [...playlist.songs, currentSong]
+          await addSongToPlaylist(playlistId, currentSong)
         }
-        await addSongToPlaylist(playlistId, currentSong, updatedSongs)
       }
     }
   }
-
-  if (queue.length === 0) {
-    return (
-      <div className="bg-card text-card-foreground p-4 border-t fixed bottom-0 left-0 right-0">
-        <div className="flex justify-center items-center">
-          <p className="text-muted-foreground mr-4">Your queue is empty. Add some songs to get started!</p>
-          <Button onClick={() => navigate("/library")} className="flex items-center">
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Add Songs
-          </Button>
-        </div>
-      </div>
-    )
-  }
-
-  if (!currentSong) return null
 
   return (
     <div className="bg-card text-card-foreground p-4 border-t fixed bottom-0 left-0 right-0">
       <div className="flex flex-col md:flex-row items-center justify-between max-w-6xl mx-auto space-y-4 md:space-y-0">
         <div className="flex items-center space-x-4 w-full md:w-1/4">
           <img
-            src={currentSong.coverUrl || "/placeholder.svg"}
-            alt={currentSong.title}
+            src={currentSong?.coverUrl || "/placeholder.svg"}
+            alt={currentSong?.title || "No song playing"}
             className="w-16 h-16 rounded-md object-cover"
           />
           <div className="overflow-hidden">
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <h3 className="font-semibold truncate">{currentSong.title}</h3>
+                  <h3 className="font-semibold truncate">{currentSong?.title || "No song playing"}</h3>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>{currentSong.title}</p>
+                  <p>{currentSong?.title || "No song playing"}</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <p className="text-sm text-muted-foreground truncate">{currentSong.artist}</p>
+                  <p className="text-sm text-muted-foreground truncate">{currentSong?.artist || "Unknown artist"}</p>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>{currentSong.artist}</p>
+                  <p>{currentSong?.artist || "Unknown artist"}</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
           </div>
-          <Button variant="ghost" size="icon" onClick={() => toggleLike(currentSong.id)} className="ml-2">
-            <Heart className={cn("h-4 w-4", isLiked(currentSong.id) && "fill-primary")} />
-          </Button>
+          {currentSong && (
+            <Button variant="ghost" size="icon" onClick={() => toggleLike(currentSong)} className="ml-2">
+              <Heart className={cn("h-4 w-4", isLiked(currentSong.id) && "fill-primary text-primary")} />
+            </Button>
+          )}
         </div>
 
         <div className="flex flex-col items-center w-full md:w-1/2">
@@ -146,7 +128,7 @@ const MusicPlayer = () => {
             <Button variant="ghost" size="icon" onClick={previousSong}>
               <SkipBack size={20} />
             </Button>
-            <Button variant="default" size="icon" onClick={togglePlay}>
+            <Button variant="default" size="icon" onClick={togglePlay} disabled={!currentSong}>
               {isPlaying ? <Pause size={20} /> : <Play size={20} />}
             </Button>
             <Button variant="ghost" size="icon" onClick={nextSong}>
@@ -169,6 +151,7 @@ const MusicPlayer = () => {
               step={1}
               onValueChange={([value]) => setProgressManually(value)}
               className="w-full"
+              disabled={!currentSong}
             />
             <span className="text-sm">{formatTime(duration)}</span>
           </div>
@@ -194,21 +177,25 @@ const MusicPlayer = () => {
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel>Add to Playlist</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              {playlists.length > 0 ? (
-                playlists.map((playlist) => (
-                  <DropdownMenuItem
-                    key={playlist.id}
-                    onSelect={() => handleAddToPlaylist(playlist.id)}
-                    className="flex items-center justify-between"
-                  >
-                    <span className="truncate">{playlist.name}</span>
-                    {playlist.songs.some((song) => song.id === currentSong?.id) && (
-                      <Check className="h-4 w-4 text-primary" />
-                    )}
-                  </DropdownMenuItem>
-                ))
+              {currentSong ? (
+                playlists.length > 0 ? (
+                  playlists.map((playlist) => (
+                    <DropdownMenuItem
+                      key={playlist.id}
+                      onSelect={() => handleAddOrRemoveFromPlaylist(playlist.id)}
+                      className="flex items-center justify-between"
+                    >
+                      <span className="truncate">{playlist.name}</span>
+                      {playlist.songs.some((song) => song.id === currentSong?.id) && (
+                        <Check className="h-4 w-4 text-primary" />
+                      )}
+                    </DropdownMenuItem>
+                  ))
+                ) : (
+                  <DropdownMenuItem disabled>No playlists available</DropdownMenuItem>
+                )
               ) : (
-                <DropdownMenuItem disabled>No playlists available</DropdownMenuItem>
+                <DropdownMenuItem disabled>No song playing</DropdownMenuItem>
               )}
               <DropdownMenuSeparator />
               <DropdownMenuItem onSelect={() => navigate("/create-playlist")}>

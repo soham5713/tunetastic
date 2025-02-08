@@ -12,7 +12,6 @@ import Playlist from "./components/pages/Playlist"
 import Profile from "./components/pages/Profile"
 import CreatePlaylist from "./components/pages/CreatePlaylist"
 import LikedSongs from "./components/pages/LikedSongs"
-import { Toaster } from "./components/ui/toaster"
 
 const App = () => {
   return (
@@ -34,7 +33,6 @@ const App = () => {
               </Routes>
             </Layout>
           </PlayerProvider>
-          <Toaster />
         </ThemeProvider>
       </AuthProvider>
     </Router>

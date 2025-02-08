@@ -1,106 +1,74 @@
-"use client"
-
 import { useState, useEffect } from "react"
 import { useAuth } from "./useAuth"
 import { db } from "../../lib/firebase"
-import { collection, doc, setDoc, deleteDoc, onSnapshot } from "firebase/firestore"
+import { collection, doc, setDoc, deleteDoc, onSnapshot, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore"
 
 export const usePlaylists = () => {
   const [playlists, setPlaylists] = useState([])
   const { user } = useAuth()
 
   useEffect(() => {
-    let unsubscribe = () => {}
+    if (!user) return
 
-    const fetchPlaylists = async () => {
-      if (user) {
-        const playlistsCollection = collection(db, `users/${user.uid}/playlists`)
-        unsubscribe = onSnapshot(playlistsCollection, (snapshot) => {
-          const playlistsData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
-          setPlaylists(playlistsData)
-        })
-      } else {
-        const localPlaylists = JSON.parse(localStorage.getItem("playlists") || "[]")
-        setPlaylists(localPlaylists)
-      }
-    }
-
-    fetchPlaylists()
+    const playlistsCollection = collection(db, `users/${user.uid}/playlists`)
+    const unsubscribe = onSnapshot(playlistsCollection, (snapshot) => {
+      const playlistsData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+      setPlaylists(playlistsData)
+    })
 
     return () => unsubscribe()
   }, [user])
 
-  const savePlaylists = async (updatedPlaylists) => {
-    if (user) {
-      const playlistsCollection = collection(db, `users/${user.uid}/playlists`)
-      for (const playlist of updatedPlaylists) {
-        await setDoc(doc(playlistsCollection, playlist.id), playlist)
-      }
-    } else {
-      localStorage.setItem("playlists", JSON.stringify(updatedPlaylists))
-    }
-    setPlaylists(updatedPlaylists)
-  }
-
   const createPlaylist = async (name, songs = []) => {
+    if (!user) return null
+
     const newPlaylist = {
-      id: Date.now().toString(),
       name,
+      songs,
       songCount: songs.length,
-      songs: songs,
-      coverUrl: songs.length > 0 ? songs[0].coverUrl : "/placeholder.svg?height=100&width=100",
+      createdAt: new Date(),
+      coverUrl: songs.length > 0 ? songs[0].coverUrl : "/placeholder.svg",
     }
-    if (user) {
-      await setDoc(doc(db, `users/${user.uid}/playlists/${newPlaylist.id}`), newPlaylist)
-    } else {
-      const updatedPlaylists = [...playlists, newPlaylist]
-      localStorage.setItem("playlists", JSON.stringify(updatedPlaylists))
-      setPlaylists(updatedPlaylists)
-    }
-    return newPlaylist
+
+    const playlistRef = doc(collection(db, `users/${user.uid}/playlists`))
+    await setDoc(playlistRef, newPlaylist)
+
+    return { id: playlistRef.id, ...newPlaylist }
   }
 
   const editPlaylist = async (id, newName) => {
-    if (user) {
-      await setDoc(doc(db, `users/${user.uid}/playlists/${id}`), { name: newName }, { merge: true })
-    } else {
-      const updatedPlaylists = playlists.map((playlist) =>
-        playlist.id === id ? { ...playlist, name: newName } : playlist,
-      )
-      localStorage.setItem("playlists", JSON.stringify(updatedPlaylists))
-      setPlaylists(updatedPlaylists)
-    }
+    if (!user) return
+
+    const playlistRef = doc(db, `users/${user.uid}/playlists/${id}`)
+    await updateDoc(playlistRef, { name: newName })
   }
 
   const deletePlaylist = async (id) => {
-    if (user) {
-      await deleteDoc(doc(db, `users/${user.uid}/playlists/${id}`))
-    } else {
-      const updatedPlaylists = playlists.filter((playlist) => playlist.id !== id)
-      localStorage.setItem("playlists", JSON.stringify(updatedPlaylists))
-      setPlaylists(updatedPlaylists)
-    }
+    if (!user) return
+
+    await deleteDoc(doc(db, `users/${user.uid}/playlists/${id}`))
   }
 
-  const addSongToPlaylist = async (playlistId, song, updatedSongs) => {
-    if (user) {
-      await setDoc(
-        doc(db, `users/${user.uid}/playlists/${playlistId}`),
-        { songs: updatedSongs, songCount: updatedSongs.length },
-        { merge: true },
-      )
-    } else {
-      const updatedPlaylists = playlists.map((playlist) => {
-        if (playlist.id === playlistId) {
-          return { ...playlist, songs: updatedSongs, songCount: updatedSongs.length }
-        }
-        return playlist
-      })
-      localStorage.setItem("playlists", JSON.stringify(updatedPlaylists))
-      setPlaylists(updatedPlaylists)
-    }
+  const addSongToPlaylist = async (playlistId, song) => {
+    if (!user) return
+
+    const playlistRef = doc(db, `users/${user.uid}/playlists/${playlistId}`)
+    await updateDoc(playlistRef, {
+      songs: arrayUnion(song),
+      songCount: playlists.find((p) => p.id === playlistId).songCount + 1,
+    })
   }
 
-  return { playlists, createPlaylist, editPlaylist, deletePlaylist, addSongToPlaylist }
+  const removeSongFromPlaylist = async (playlistId, song) => {
+    if (!user) return
+
+    const playlistRef = doc(db, `users/${user.uid}/playlists/${playlistId}`)
+    await updateDoc(playlistRef, {
+      songs: arrayRemove(song),
+      songCount: playlists.find((p) => p.id === playlistId).songCount - 1,
+    })
+  }
+
+  return { playlists, createPlaylist, editPlaylist, deletePlaylist, addSongToPlaylist, removeSongFromPlaylist }
 }
 

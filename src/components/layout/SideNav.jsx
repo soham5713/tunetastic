@@ -6,7 +6,8 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
-import { Home, Search, Library, PlusCircle, Heart, Disc3, ChevronLeft, ChevronRight } from "lucide-react"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { Home, Search, Library, Heart, Disc3, ChevronLeft, ChevronRight, Music, PlusCircle } from "lucide-react"
 import { usePlaylists } from "../hooks/usePlaylists"
 
 const SideNav = () => {
@@ -29,70 +30,81 @@ const SideNav = () => {
     navigate("/create-playlist")
   }
 
+  const NavItem = ({ icon: Icon, label, path }) => (
+    <TooltipProvider>
+      <Tooltip delayDuration={0}>
+        <TooltipTrigger asChild>
+          <Link
+            to={path}
+            className={cn(
+              "flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200",
+              location.pathname === path
+                ? "bg-primary text-primary-foreground shadow-md"
+                : "hover:bg-accent hover:text-accent-foreground",
+              collapsed ? "justify-center" : "justify-start",
+            )}
+          >
+            <Icon size={22} />
+            {!collapsed && <span className="font-medium">{label}</span>}
+          </Link>
+        </TooltipTrigger>
+        {collapsed && <TooltipContent side="right">{label}</TooltipContent>}
+      </Tooltip>
+    </TooltipProvider>
+  )
+
   return (
     <div
-      style={{ transition: "width 0.3s ease" }}
-      className={cn("flex flex-col h-screen bg-background border-r border-border", collapsed ? "w-16" : "w-64")}
+      className={cn(
+        "flex flex-col h-screen bg-card text-card-foreground border-r border-border transition-all duration-300 ease-in-out",
+        collapsed ? "w-20" : "w-72",
+      )}
     >
-      <div className="p-4 flex justify-between items-center">
-        {!collapsed && <h2 className="text-lg font-semibold">Tunetastic</h2>}
-        <Button variant="ghost" size="icon" onClick={toggleCollapse}>
+      <div className="p-4 flex items-center justify-between">
+        {!collapsed && (
+          <div className="flex items-center space-x-2">
+            <Music size={24} className="text-primary" />
+            <h2 className="text-xl font-bold">Tunetastic</h2>
+          </div>
+        )}
+        <Button variant="ghost" size="icon" onClick={toggleCollapse} className="ml-auto">
           {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
         </Button>
       </div>
-      <ScrollArea className="flex-grow">
-        <nav className="space-y-2 p-2">
+      <ScrollArea className="flex-grow px-2">
+        <nav className="space-y-1 py-2">
           {navItems.map((item) => (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={cn(
-                "flex items-center space-x-2 px-3 py-2 rounded-md transition-colors",
-                location.pathname === item.path
-                  ? "bg-accent text-accent-foreground"
-                  : "hover:bg-accent/50 hover:text-accent-foreground",
-              )}
-            >
-              <item.icon size={20} />
-              {!collapsed && <span>{item.label}</span>}
-            </Link>
+            <NavItem key={item.path} {...item} />
           ))}
         </nav>
         <Separator className="my-4" />
-        <div className="space-y-4 p-2">
-          <Button variant="ghost" className="w-full justify-start" onClick={handleCreatePlaylist} disabled={collapsed}>
-            <PlusCircle size={20} className="mr-2" />
-            {!collapsed && "Create Playlist"}
-          </Button>
-          <Link
-            to="/liked-songs"
-            className={cn(
-              "flex items-center space-x-2 px-3 py-2 rounded-md transition-colors",
-              location.pathname === "/liked-songs"
-                ? "bg-accent text-accent-foreground"
-                : "hover:bg-accent/50 hover:text-accent-foreground",
-            )}
-          >
-            <Heart size={20} />
-            {!collapsed && <span>Liked Songs</span>}
-          </Link>
+        <div className="space-y-4 py-2">
+          <NavItem icon={PlusCircle} label="Create Playlist" path="/create-playlist" />
+          <NavItem icon={Heart} label="Liked Songs" path="/liked-songs" />
         </div>
         <Separator className="my-4" />
-        <div className="space-y-2 p-2">
+        <div className="space-y-1 py-2">
           {playlists.map((playlist) => (
-            <Link
-              key={playlist.id}
-              to={`/playlist/${playlist.id}`}
-              className={cn(
-                "flex items-center space-x-2 px-3 py-2 rounded-md transition-colors",
-                location.pathname === `/playlist/${playlist.id}`
-                  ? "bg-accent text-accent-foreground"
-                  : "hover:bg-accent/50 hover:text-accent-foreground",
-              )}
-            >
-              <Disc3 size={20} />
-              {!collapsed && <span className="truncate">{playlist.name}</span>}
-            </Link>
+            <TooltipProvider key={playlist.id}>
+              <Tooltip delayDuration={0}>
+                <TooltipTrigger asChild>
+                  <Link
+                    to={`/playlist/${playlist.id}`}
+                    className={cn(
+                      "flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200",
+                      location.pathname === `/playlist/${playlist.id}`
+                        ? "bg-accent text-accent-foreground"
+                        : "hover:bg-accent/50 hover:text-accent-foreground",
+                      collapsed ? "justify-center" : "justify-start",
+                    )}
+                  >
+                    <Disc3 size={22} />
+                    {!collapsed && <span className="font-medium truncate">{playlist.name}</span>}
+                  </Link>
+                </TooltipTrigger>
+                {collapsed && <TooltipContent side="right">{playlist.name}</TooltipContent>}
+              </Tooltip>
+            </TooltipProvider>
           ))}
         </div>
       </ScrollArea>

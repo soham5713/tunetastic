@@ -37,7 +37,7 @@ const PlaylistCard = ({ playlist, onEdit, onDelete }) => {
           <div className="flex justify-between items-start">
             <div className="overflow-hidden">
               <CardTitle className="text-lg font-semibold truncate">{playlist.name}</CardTitle>
-              <CardDescription className="truncate">{playlist.songCount} songs</CardDescription>
+              <CardDescription className="truncate">{playlist.songs.length} songs</CardDescription>
             </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

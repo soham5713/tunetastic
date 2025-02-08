@@ -19,20 +19,48 @@ export const PlayerProvider = ({ children }) => {
   const [error, setError] = useState(null)
   const [shuffle, setShuffle] = useState(false)
   const [repeat, setRepeat] = useState("off") // 'off', 'all', 'one'
+  const [recentlyPlayed, setRecentlyPlayed] = useState([])
 
   const audioRef = useRef(new Audio())
   const { user } = useAuth()
 
   useEffect(() => {
+    const savedSong = JSON.parse(localStorage.getItem("currentSong"))
+    const savedProgress = Number.parseFloat(localStorage.getItem("songProgress") || "0")
+    const savedIsPlaying = localStorage.getItem("isPlaying") === "true"
+
+    if (savedSong) {
+      setCurrentSong(savedSong)
+      setProgress(savedProgress)
+      setIsPlaying(false) // Always set to paused on refresh
+    }
+  }, [])
+
+  useEffect(() => {
     if (currentSong) {
       audioRef.current.src = currentSong.audioUrl
-      audioRef.current.play().catch((error) => {
-        console.error("Playback failed:", error)
-        setError("Failed to play the song. Please try again.")
-      })
-      setIsPlaying(true)
+      audioRef.current.currentTime = progress
+      localStorage.setItem("currentSong", JSON.stringify(currentSong))
+      localStorage.setItem("isPlaying", isPlaying.toString())
+      updateRecentlyPlayed(currentSong)
+
+      if (isPlaying) {
+        audioRef.current.play().catch((error) => {
+          console.error("Playback failed:", error)
+          setError("Failed to play the song. Please try again.")
+        })
+      } else {
+        audioRef.current.pause()
+      }
     }
-  }, [currentSong])
+  }, [currentSong, isPlaying, progress])
+
+  const updateRecentlyPlayed = (song) => {
+    setRecentlyPlayed((prev) => {
+      const newRecentlyPlayed = [song, ...prev.filter((s) => s.id !== song.id)].slice(0, 5)
+      return newRecentlyPlayed
+    })
+  }
 
   useEffect(() => {
     audioRef.current.volume = volume
@@ -41,7 +69,10 @@ export const PlayerProvider = ({ children }) => {
   useEffect(() => {
     const audio = audioRef.current
 
-    const updateProgress = () => setProgress(audio.currentTime)
+    const updateProgress = () => {
+      setProgress(audio.currentTime)
+      localStorage.setItem("songProgress", audio.currentTime.toString())
+    }
     const updateDuration = () => setDuration(audio.duration)
     const handleEnded = () => {
       if (repeat === "one") {
@@ -111,22 +142,27 @@ export const PlayerProvider = ({ children }) => {
 
   const playSong = useCallback((song) => {
     setCurrentSong(song)
+    setIsPlaying(true)
     setError(null)
   }, [])
 
   const togglePlay = useCallback(() => {
     if (!currentSong) return
 
-    if (isPlaying) {
-      audioRef.current.pause()
-    } else {
-      audioRef.current.play().catch((error) => {
-        console.error("Playback failed:", error)
-        setError("Failed to play the song. Please try again.")
-      })
-    }
-    setIsPlaying(!isPlaying)
-  }, [isPlaying, currentSong])
+    setIsPlaying((prevIsPlaying) => {
+      const newIsPlaying = !prevIsPlaying
+      if (newIsPlaying) {
+        audioRef.current.play().catch((error) => {
+          console.error("Playback failed:", error)
+          setError("Failed to play the song. Please try again.")
+        })
+      } else {
+        audioRef.current.pause()
+      }
+      localStorage.setItem("isPlaying", newIsPlaying.toString())
+      return newIsPlaying
+    })
+  }, [currentSong])
 
   const getNextSong = useCallback(() => {
     if (!queue.length) return null
@@ -216,6 +252,7 @@ export const PlayerProvider = ({ children }) => {
     error,
     shuffle,
     repeat,
+    recentlyPlayed,
     playSong,
     togglePlay,
     nextSong,

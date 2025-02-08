@@ -12,22 +12,18 @@ import { Play, Pause } from "lucide-react"
 
 const Home = () => {
   const { user } = useAuth()
-  const { queue, playSong, currentSong, isPlaying, togglePlay } = usePlayer()
+  const { recentlyPlayed, currentSong, isPlaying, playSong, togglePlay } = usePlayer()
   const { playlists } = usePlaylists()
-  const [recentlyPlayed, setRecentlyPlayed] = useState([])
   const [topPlaylists, setTopPlaylists] = useState([])
   const [suggestedSongs, setSuggestedSongs] = useState([])
 
   useEffect(() => {
-    // Simulating fetching recently played songs
-    setRecentlyPlayed(queue.slice(0, 5))
-
     // Simulating fetching top playlists
     setTopPlaylists(playlists.slice(0, 3))
 
     // Simulating fetching suggested songs
-    setSuggestedSongs(queue.slice(5, 10))
-  }, [queue, playlists])
+    setSuggestedSongs(recentlyPlayed.slice(0, 5))
+  }, [playlists, recentlyPlayed])
 
   const renderSongCard = (song) => (
     <Card key={song.id} className="overflow-hidden hover:shadow-md transition-shadow">
@@ -97,13 +93,13 @@ const Home = () => {
               <CardContent className="p-4">
                 <Link to={`/playlist/${playlist.id}`} className="flex items-center space-x-4">
                   <img
-                    src={playlist.coverUrl || "/placeholder.svg"}
+                    src={playlist.songs[0]?.coverUrl || "/placeholder.svg"}
                     alt={playlist.name}
                     className="w-16 h-16 rounded-md object-cover"
                   />
                   <div>
                     <h3 className="font-semibold text-foreground">{playlist.name}</h3>
-                    <p className="text-sm text-muted-foreground">{playlist.songCount} songs</p>
+                    <p className="text-sm text-muted-foreground">{playlist.songs.length} songs</p>
                   </div>
                 </Link>
               </CardContent>

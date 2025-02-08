@@ -36,9 +36,9 @@ const SortableItem = ({ id, song, currentSong, isPlaying, playSong, togglePlay, 
           <GripVertical className="h-4 w-4" />
         </Button>
         <img src={song.coverUrl || "/placeholder.svg"} alt={song.title} className="w-10 h-10 rounded-md" />
-        <div>
-          <p className="font-medium">{song.title}</p>
-          <p className="text-sm text-muted-foreground">{song.artist}</p>
+        <div className="min-w-0 flex-1">
+          <p className="font-medium truncate">{song.title}</p>
+          <p className="text-sm text-muted-foreground truncate">{song.artist}</p>
         </div>
       </div>
       <div className="flex items-center space-x-2">
@@ -79,7 +79,7 @@ const Queue = () => {
   }
 
   return (
-    <div className="w-full max-w-md mx-auto bg-background border border-border rounded-lg shadow-lg">
+    <div className="w-[400px] bg-background border border-border rounded-lg shadow-lg">
       <h2 className="text-xl font-semibold p-4 border-b border-border">Queue</h2>
       <ScrollArea className="h-[400px]">
         {queue.length > 0 ? (
