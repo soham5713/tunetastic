@@ -1,6 +1,9 @@
+"use client"
+
 import { useContext } from "react"
 import { AuthContext } from "../context/AuthContext"
 import { auth, googleProvider } from "../../lib/firebase"
+import { signInWithEmailAndPassword, signInWithPopup, createUserWithEmailAndPassword, signOut } from "firebase/auth"
 
 export const useAuth = () => {
   const context = useContext(AuthContext)
@@ -9,19 +12,19 @@ export const useAuth = () => {
   }
 
   const login = (email, password) => {
-    return auth.signInWithEmailAndPassword(email, password)
+    return signInWithEmailAndPassword(auth, email, password)
   }
 
   const loginWithGoogle = () => {
-    return auth.signInWithPopup(googleProvider)
+    return signInWithPopup(auth, googleProvider)
   }
 
   const signUp = (email, password) => {
-    return auth.createUserWithEmailAndPassword(email, password)
+    return createUserWithEmailAndPassword(auth, email, password)
   }
 
   const logout = () => {
-    return auth.signOut()
+    return signOut(auth)
   }
 
   return {
