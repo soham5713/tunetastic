@@ -10,6 +10,7 @@ import Search from "./components/pages/Search"
 import Library from "./components/pages/Library"
 import Playlist from "./components/pages/Playlist"
 import Profile from "./components/pages/Profile"
+import CreatePlaylist from "./components/pages/CreatePlaylist"
 
 const App = () => {
   return (
@@ -26,6 +27,7 @@ const App = () => {
                 <Route path="/library" element={<Library />} />
                 <Route path="/playlist/:id" element={<Playlist />} />
                 <Route path="/profile" element={<Profile />} />
+                <Route path="/create-playlist" element={<CreatePlaylist />} />
               </Routes>
             </Layout>
           </PlayerProvider>

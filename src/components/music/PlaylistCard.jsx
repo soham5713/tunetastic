@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useNavigate } from "react-router-dom"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
@@ -11,35 +12,55 @@ import DeletePlaylistDialog from "../dialogs/DeletePlaylistDialog"
 const PlaylistCard = ({ playlist, onEdit, onDelete }) => {
   const [isEditOpen, setIsEditOpen] = useState(false)
   const [isDeleteOpen, setIsDeleteOpen] = useState(false)
+  const navigate = useNavigate()
+
+  const thumbnailUrl =
+    playlist.songs && playlist.songs.length > 0 ? playlist.songs[0].coverUrl : "/placeholder.svg?height=100&width=100"
+
+  const handleCardClick = (e) => {
+    // Prevent navigation if clicking on the dropdown menu
+    if (e.target.closest(".dropdown-trigger")) return
+    navigate(`/playlist/${playlist.id}`)
+  }
 
   return (
     <>
-      <Card className="hover:shadow-md transition-shadow">
+      <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={handleCardClick}>
         <CardHeader className="p-0">
           <img
-            src={playlist.coverUrl || "/placeholder.svg?height=100&width=100"}
+            src={thumbnailUrl || "/placeholder.svg"}
             alt={playlist.name}
             className="w-full h-40 object-cover rounded-t-lg"
           />
         </CardHeader>
         <CardContent className="p-4">
           <div className="flex justify-between items-start">
-            <div>
+            <div className="overflow-hidden">
               <CardTitle className="text-lg font-semibold truncate">{playlist.name}</CardTitle>
-              <CardDescription>{playlist.songCount} songs</CardDescription>
+              <CardDescription className="truncate">{playlist.songCount} songs</CardDescription>
             </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-8 w-8 p-0">
+                <Button variant="ghost" className="h-8 w-8 p-0 dropdown-trigger">
                   <MoreVertical className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => setIsEditOpen(true)}>
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setIsEditOpen(true)
+                  }}
+                >
                   <Pencil className="mr-2 h-4 w-4" />
                   <span>Edit</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setIsDeleteOpen(true)}>
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setIsDeleteOpen(true)
+                  }}
+                >
                   <Trash2 className="mr-2 h-4 w-4" />
                   <span>Delete</span>
                 </DropdownMenuItem>

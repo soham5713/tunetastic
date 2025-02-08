@@ -1,6 +1,6 @@
 "use client"
-
 import { usePlayer } from "../hooks/usePlayer"
+import { usePlaylists } from "../hooks/usePlaylists"
 import { Button } from "@/components/ui/button"
 import { Slider } from "@/components/ui/slider"
 import { Toggle } from "@/components/ui/toggle"
@@ -18,9 +18,8 @@ import {
   PlusCircle,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { useState } from "react"
-import { usePlaylists } from "../hooks/usePlaylists"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
 const formatTime = (time) => {
   const minutes = Math.floor(time / 60)
@@ -47,12 +46,12 @@ const MusicPlayer = () => {
     toggleLike,
     isLiked,
   } = usePlayer()
-  const [isAddToPlaylistOpen, setIsAddToPlaylistOpen] = useState(false)
-  const { addSongToPlaylist } = usePlaylists()
+  const { playlists, addSongToPlaylist } = usePlaylists()
 
   const handleAddToPlaylist = (playlistId) => {
-    addSongToPlaylist(playlistId, currentSong)
-    setIsAddToPlaylistOpen(false)
+    if (currentSong) {
+      addSongToPlaylist(playlistId, currentSong)
+    }
   }
 
   if (!currentSong) return null
@@ -66,9 +65,27 @@ const MusicPlayer = () => {
             alt={currentSong.title}
             className="w-16 h-16 rounded-md object-cover"
           />
-          <div>
-            <h3 className="font-semibold truncate">{currentSong.title}</h3>
-            <p className="text-sm text-muted-foreground truncate">{currentSong.artist}</p>
+          <div className="overflow-hidden">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <h3 className="font-semibold truncate">{currentSong.title}</h3>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{currentSong.title}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <p className="text-sm text-muted-foreground truncate">{currentSong.artist}</p>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{currentSong.artist}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
           <Button variant="ghost" size="icon" onClick={() => toggleLike(currentSong.id)} className="ml-2">
             <Heart className={cn("h-4 w-4", isLiked(currentSong.id) && "fill-primary")} />
@@ -127,18 +144,30 @@ const MusicPlayer = () => {
               className="w-24"
             />
           </div>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" onClick={() => setIsAddToPlaylistOpen(true)}>
-                  <PlusCircle className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Add to Playlist</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <PlusCircle className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              {playlists.length > 0 ? (
+                playlists.map((playlist) => (
+                  <DropdownMenuItem
+                    key={playlist.id}
+                    onSelect={() => handleAddToPlaylist(playlist.id)}
+                    className={cn(
+                      playlist.songs.some((song) => song.id === currentSong.id) && "bg-accent text-accent-foreground",
+                    )}
+                  >
+                    {playlist.name}
+                  </DropdownMenuItem>
+                ))
+              ) : (
+                <DropdownMenuItem disabled>No playlists available</DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </div>

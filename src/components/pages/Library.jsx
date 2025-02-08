@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useNavigate } from "react-router-dom"
 import { usePlaylists } from "../hooks/usePlaylists"
 import { usePlayer } from "../hooks/usePlayer"
 import { Button } from "@/components/ui/button"
@@ -17,6 +18,7 @@ const Library = () => {
   const { queue, likedSongs } = usePlayer()
   const [searchTerm, setSearchTerm] = useState("")
   const [isCreatePlaylistOpen, setIsCreatePlaylistOpen] = useState(false)
+  const navigate = useNavigate()
 
   const filteredPlaylists = playlists.filter((playlist) =>
     playlist.name.toLowerCase().includes(searchTerm.toLowerCase()),
@@ -31,8 +33,17 @@ const Library = () => {
   const likedSongsData = queue.filter((song) => likedSongs.includes(song.id))
 
   const handleCreatePlaylist = (name) => {
-    createPlaylist(name)
+    const newPlaylist = createPlaylist(name)
     setIsCreatePlaylistOpen(false)
+    navigate(`/playlist/${newPlaylist.id}`)
+  }
+
+  const handleTabChange = (value) => {
+    if (value === "liked") {
+      navigate("/liked-songs")
+    } else if (value === "songs") {
+      navigate("/all-songs")
+    }
   }
 
   return (
@@ -55,7 +66,7 @@ const Library = () => {
         />
       </div>
 
-      <Tabs defaultValue="playlists" className="w-full">
+      <Tabs defaultValue="playlists" className="w-full" onValueChange={handleTabChange}>
         <TabsList className="justify-center">
           <TabsTrigger value="playlists">Playlists</TabsTrigger>
           <TabsTrigger value="liked">Liked Songs</TabsTrigger>
@@ -63,21 +74,37 @@ const Library = () => {
         </TabsList>
         <TabsContent value="playlists">
           <ScrollArea className="h-[calc(100vh-300px)]">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
-              {filteredPlaylists.map((playlist) => (
-                <PlaylistCard key={playlist.id} playlist={playlist} onEdit={editPlaylist} onDelete={deletePlaylist} />
-              ))}
-            </div>
+            {filteredPlaylists.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
+                {filteredPlaylists.map((playlist) => (
+                  <PlaylistCard key={playlist.id} playlist={playlist} onEdit={editPlaylist} onDelete={deletePlaylist} />
+                ))}
+              </div>
+            ) : (
+              <p className="text-center text-muted-foreground">
+                No playlists found. Create a new playlist to get started!
+              </p>
+            )}
           </ScrollArea>
         </TabsContent>
         <TabsContent value="liked">
           <ScrollArea className="h-[calc(100vh-300px)]">
-            <SongList songs={likedSongsData} />
+            {likedSongsData.length > 0 ? (
+              <SongList songs={likedSongsData} />
+            ) : (
+              <p className="text-center text-muted-foreground">
+                No liked songs yet. Start liking songs to see them here!
+              </p>
+            )}
           </ScrollArea>
         </TabsContent>
         <TabsContent value="songs">
           <ScrollArea className="h-[calc(100vh-300px)]">
-            <SongList songs={filteredSongs} />
+            {filteredSongs.length > 0 ? (
+              <SongList songs={filteredSongs} />
+            ) : (
+              <p className="text-center text-muted-foreground">No songs found. Add some songs to your library!</p>
+            )}
           </ScrollArea>
         </TabsContent>
       </Tabs>

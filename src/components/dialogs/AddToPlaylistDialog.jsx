@@ -3,14 +3,12 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Label } from "@/components/ui/label"
-import { ScrollArea } from "@/components/ui/scroll-area"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { usePlaylists } from "../hooks/usePlaylists"
 
 const AddToPlaylistDialog = ({ isOpen, onClose, song, onAddToPlaylist }) => {
   const { playlists } = usePlaylists()
-  const [selectedPlaylistId, setSelectedPlaylistId] = useState(null)
+  const [selectedPlaylistId, setSelectedPlaylistId] = useState("")
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -27,16 +25,18 @@ const AddToPlaylistDialog = ({ isOpen, onClose, song, onAddToPlaylist }) => {
           <DialogTitle>Add to Playlist</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
-          <ScrollArea className="h-[300px] pr-4">
-            <RadioGroup value={selectedPlaylistId} onValueChange={setSelectedPlaylistId}>
+          <Select value={selectedPlaylistId} onValueChange={setSelectedPlaylistId}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select a playlist" />
+            </SelectTrigger>
+            <SelectContent>
               {playlists.map((playlist) => (
-                <div key={playlist.id} className="flex items-center space-x-2 mb-2">
-                  <RadioGroupItem value={playlist.id} id={`playlist-${playlist.id}`} />
-                  <Label htmlFor={`playlist-${playlist.id}`}>{playlist.name}</Label>
-                </div>
+                <SelectItem key={playlist.id} value={playlist.id}>
+                  {playlist.name}
+                </SelectItem>
               ))}
-            </RadioGroup>
-          </ScrollArea>
+            </SelectContent>
+          </Select>
           <DialogFooter className="mt-4">
             <Button type="submit" disabled={!selectedPlaylistId}>
               Add to Playlist

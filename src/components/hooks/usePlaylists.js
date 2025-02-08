@@ -37,16 +37,17 @@ export const usePlaylists = () => {
     setPlaylists(updatedPlaylists)
   }
 
-  const createPlaylist = async (name) => {
+  const createPlaylist = async (name, songs = []) => {
     const newPlaylist = {
       id: Date.now().toString(),
       name,
-      songCount: 0,
-      songs: [],
-      coverUrl: "/placeholder.svg?height=100&width=100",
+      songCount: songs.length,
+      songs: songs,
+      coverUrl: songs.length > 0 ? songs[0].coverUrl : "/placeholder.svg?height=100&width=100",
     }
     const updatedPlaylists = [...playlists, newPlaylist]
     await savePlaylists(updatedPlaylists)
+    return newPlaylist
   }
 
   const editPlaylist = async (id, newName) => {
@@ -67,8 +68,11 @@ export const usePlaylists = () => {
   const addSongToPlaylist = async (playlistId, song) => {
     const updatedPlaylists = playlists.map((playlist) => {
       if (playlist.id === playlistId) {
-        const updatedSongs = [...playlist.songs, song]
-        return { ...playlist, songs: updatedSongs, songCount: updatedSongs.length }
+        const songExists = playlist.songs.some((s) => s.id === song.id)
+        if (!songExists) {
+          const updatedSongs = [...playlist.songs, song]
+          return { ...playlist, songs: updatedSongs, songCount: updatedSongs.length }
+        }
       }
       return playlist
     })

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Link, useLocation } from "react-router-dom"
+import { Link, useLocation, useNavigate } from "react-router-dom"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -13,6 +13,7 @@ const SideNav = () => {
   const [collapsed, setCollapsed] = useState(false)
   const location = useLocation()
   const { playlists, createPlaylist } = usePlaylists()
+  const navigate = useNavigate()
 
   const navItems = [
     { icon: Home, label: "Home", path: "/" },
@@ -25,10 +26,7 @@ const SideNav = () => {
   }
 
   const handleCreatePlaylist = () => {
-    const playlistName = prompt("Enter playlist name:")
-    if (playlistName) {
-      createPlaylist(playlistName)
-    }
+    navigate("/create-playlist")
   }
 
   return (
