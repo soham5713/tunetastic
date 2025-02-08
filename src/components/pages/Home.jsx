@@ -1,14 +1,13 @@
 import { useAuth } from "../hooks/useAuth"
-import { usePlaylists } from "../hooks/usePlaylists"
-import FeaturedPlaylists from "../music/FeaturedPlaylists"
-import RecentlyPlayed from "../music/RecentlyPlayed"
-import { Button } from "@/components/ui/button"
+import { usePlayer } from "../hooks/usePlayer"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 import { Link } from "react-router-dom"
+import { PlayIcon } from "lucide-react"
 
 const Home = () => {
   const { user } = useAuth()
-  const playlists = usePlaylists()
+  const { queue, playSong } = usePlayer()
 
   return (
     <div className="space-y-8 p-6">
@@ -35,21 +34,39 @@ const Home = () => {
         </CardContent>
       </Card>
 
-      {user && (
-        <>
-          <section>
-            <h2 className="text-2xl font-semibold mb-4 text-foreground">Featured Playlists</h2>
-            <FeaturedPlaylists playlists={playlists.slice(0, 4)} />
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-semibold mb-4 text-foreground">Recently Played</h2>
-            <RecentlyPlayed />
-          </section>
-        </>
-      )}
+      <section>
+        <h2 className="text-2xl font-semibold mb-4 text-foreground">Available Songs</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {queue.map((song) => (
+            <Card key={song.id} className="overflow-hidden hover:shadow-md transition-shadow">
+              <CardContent className="p-4">
+                <div className="flex items-center">
+                  <img
+                    src={song.coverUrl || "/placeholder.svg"}
+                    alt={song.title}
+                    className="w-12 h-12 rounded-md mr-3"
+                  />
+                  <div className="flex-grow">
+                    <h3 className="font-semibold text-foreground">{song.title}</h3>
+                    <p className="text-sm text-muted-foreground">{song.artist}</p>
+                  </div>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => playSong(song)}
+                    className="text-primary hover:text-primary-foreground hover:bg-primary"
+                  >
+                    <PlayIcon size={20} />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </section>
     </div>
   )
 }
 
 export default Home
+

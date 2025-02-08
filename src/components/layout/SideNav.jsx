@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
-import { Home, Search, Library, PlusCircle, Heart, Disc3, ChevronLeft, ChevronRight } from "lucide-react"
+import { Home, Search, Library, PlusCircle, Heart, Disc3, ChevronLeft, ChevronRight, UploadCloud } from "lucide-react"
 import { usePlaylists } from "../hooks/usePlaylists"
 
 const SideNav = () => {
@@ -18,6 +18,7 @@ const SideNav = () => {
     { icon: Home, label: "Home", path: "/" },
     { icon: Search, label: "Search", path: "/search" },
     { icon: Library, label: "Your Library", path: "/library" },
+    { icon: UploadCloud, label: "Upload", path: "/upload" },
   ]
 
   const toggleCollapse = () => {
